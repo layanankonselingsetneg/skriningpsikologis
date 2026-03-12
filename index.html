@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skrining Kondisi Psikologis Pegawai — Biro SDM Setneg RI</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Georgia', serif; background: #f8fafc; color: #1e293b; min-height: 100vh; }
+
+  /* ── INTRO ── */
+  #page-intro {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #312e81 100%);
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+  }
+  .intro-card {
+    max-width: 540px; width: 100%;
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 24px; padding: 44px 36px; color: #fff;
+  }
+  .intro-brand { display:flex; align-items:center; gap:12px; margin-bottom:28px; }
+  .intro-brand-icon {
+    width:40px; height:40px; border-radius:10px;
+    background: linear-gradient(135deg,#60a5fa,#a78bfa);
+    display:flex; align-items:center; justify-content:center; font-size:20px;
+  }
+  .intro-brand-text { font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#94a3b8; }
+  .intro-title { font-size:26px; font-weight:800; margin-bottom:10px; line-height:1.25; }
+  .intro-desc { color:#94a3b8; font-size:14px; line-height:1.7; margin-bottom:28px; }
+  .intro-notices { background:rgba(255,255,255,0.07); border-radius:12px; padding:16px 20px; margin-bottom:28px; }
+  .intro-notice { display:flex; gap:12px; align-items:flex-start; margin-bottom:10px; font-size:13px; color:#cbd5e1; }
+  .intro-notice:last-child { margin-bottom:0; }
+  .field-label { font-size:12px; font-weight:600; color:#94a3b8; margin-bottom:5px; }
+  .field-input {
+    width:100%; background:rgba(255,255,255,0.09);
+    border:1px solid rgba(255,255,255,0.15); border-radius:8px;
+    padding:10px 14px; color:#fff; font-size:14px; outline:none;
+    font-family: inherit; margin-bottom:12px; transition: border 0.2s;
+  }
+  .field-input:focus { border-color:rgba(255,255,255,0.4); }
+  .field-input::placeholder { color:#64748b; }
+  .btn-start {
+    width:100%; padding:14px; border:none; border-radius:12px;
+    font-size:15px; font-weight:700; cursor:pointer; transition:all 0.2s;
+    color:#fff; font-family:inherit;
+  }
+  .btn-start:enabled { background: linear-gradient(135deg,#2563eb,#7c3aed); }
+  .btn-start:disabled { background:#334155; cursor:not-allowed; }
+
+  /* ── FORM ── */
+  #page-form { display:none; min-height:100vh; background:#f8fafc; padding-bottom:80px; }
+  .form-header {
+    background:#fff; border-bottom:1px solid #e2e8f0;
+    padding:14px 20px; position:sticky; top:0; z-index:10;
+  }
+  .form-header-inner { max-width:680px; margin:0 auto; }
+  .form-header-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .section-label-hdr { font-size:13px; font-weight:700; }
+  .section-count { font-size:12px; color:#94a3b8; }
+  .progress-bar-wrap { height:6px; background:#e2e8f0; border-radius:99px; margin-bottom:8px; }
+  .progress-bar-fill {
+    height:100%; border-radius:99px;
+    background: linear-gradient(90deg,#1F4E79,#7030A0);
+    transition: width 0.4s ease;
+  }
+  .section-tabs { display:flex; gap:6px; }
+  .section-tab { flex:1; height:4px; border-radius:99px; cursor:pointer; transition:all 0.3s; }
+
+  .form-body { max-width:680px; margin:0 auto; padding:24px 16px 0; }
+  .section-banner { border-radius:16px; padding:22px 24px; margin-bottom:20px; color:#fff; }
+  .section-banner-tag { font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; opacity:0.7; margin-bottom:6px; }
+  .section-banner-title { font-size:19px; font-weight:800; margin-bottom:4px; }
+  .section-banner-sub { font-size:13px; opacity:0.85; line-height:1.5; margin-bottom:12px; }
+  .scale-chips { display:flex; gap:6px; flex-wrap:wrap; }
+  .scale-chip { background:rgba(255,255,255,0.15); font-size:11px; padding:3px 8px; border-radius:6px; }
+
+  .question-card {
+    background:#fff; border-radius:14px; border:1px solid #e2e8f0;
+    padding:18px 20px; margin-bottom:12px; transition:border-color 0.2s;
+  }
+  .question-card.answered { border-color: var(--sec-color, #1F4E79); border-opacity:0.4; }
+  .question-text { font-size:14px; font-weight:600; color:#1e293b; margin-bottom:14px; line-height:1.5; }
+  .question-num { font-weight:800; margin-right:8px; }
+  .answer-btns { display:flex; gap:8px; flex-wrap:wrap; }
+  .answer-btn {
+    flex:1 1 auto; min-width:70px; padding:8px 6px; border-radius:8px;
+    border:2px solid #e2e8f0; background:#f8fafc; color:#64748b;
+    font-size:12px; cursor:pointer; transition:all 0.15s;
+    font-family:inherit; text-align:center;
+  }
+  .answer-btn.selected { color:#fff; border-width:2px; }
+  .answer-btn-score { font-weight:800; font-size:15px; display:block; }
+  .answer-btn-label { font-size:10px; line-height:1.2; display:block; margin-top:2px; }
+
+  .form-nav { display:flex; gap:12px; margin-top:8px; }
+  .btn-back {
+    flex:1; padding:14px; background:#fff; border:2px solid #e2e8f0;
+    border-radius:12px; font-size:14px; font-weight:600; cursor:pointer;
+    color:#64748b; font-family:inherit;
+  }
+  .btn-next {
+    flex:2; padding:14px; border:none; border-radius:12px;
+    font-size:14px; font-weight:700; cursor:pointer; color:#fff; font-family:inherit;
+    transition:all 0.2s;
+  }
+  .btn-next:disabled { background:#e2e8f0; color:#94a3b8; cursor:not-allowed; }
+
+  /* ── RESULT ── */
+  #page-result { display:none; min-height:100vh; background:#f8fafc; padding:24px 16px; }
+  .result-inner { max-width:600px; margin:0 auto; }
+  .result-hero {
+    background:linear-gradient(135deg,#0f172a,#1e3a5f);
+    border-radius:20px; padding:32px 28px; color:#fff;
+    margin-bottom:20px; text-align:center;
+  }
+  .result-hero-icon { font-size:40px; margin-bottom:12px; }
+  .result-hero-title { font-size:22px; font-weight:800; margin-bottom:6px; }
+  .result-hero-name { color:#94a3b8; font-size:13px; }
+  .result-hero-date { color:#64748b; font-size:12px; margin-top:4px; }
+
+  .score-card {
+    background:#fff; border-radius:16px; padding:20px 22px;
+    margin-bottom:14px; border:2px solid transparent;
+  }
+  .score-card-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; }
+  .score-card-tag { font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:4px; }
+  .score-card-name { font-size:15px; font-weight:700; color:#1e293b; }
+  .score-num { font-size:28px; font-weight:800; line-height:1; }
+  .score-max { font-size:11px; color:#94a3b8; }
+  .score-bar-wrap { height:8px; background:#f1f5f9; border-radius:99px; margin-bottom:10px; }
+  .score-bar-fill { height:100%; border-radius:99px; transition:width 1s ease; }
+  .score-badge { display:inline-block; font-weight:700; font-size:13px; padding:3px 10px; border-radius:99px; margin-bottom:8px; }
+  .score-desc { font-size:13px; color:#475569; line-height:1.5; }
+
+  .result-note { border-radius:16px; padding:18px 22px; margin-bottom:14px; border:1px solid transparent; }
+  .result-note-title { font-weight:700; font-size:14px; margin-bottom:6px; }
+  .result-note-text { font-size:13px; color:#475569; line-height:1.6; }
+  .result-disclaimer {
+    background:#fff; border:1px solid #e2e8f0; border-radius:12px;
+    padding:14px 18px; margin-bottom:20px; font-size:11px; color:#94a3b8; line-height:1.6;
+  }
+  .btn-reset {
+    width:100%; padding:14px; background:#1e293b; color:#fff;
+    border:none; border-radius:12px; font-size:14px; font-weight:600;
+    cursor:pointer; font-family:inherit;
+  }
+  .print-btn {
+    width:100%; padding:12px; background:#fff; color:#475569;
+    border:1px solid #e2e8f0; border-radius:12px; font-size:13px; font-weight:600;
+    cursor:pointer; font-family:inherit; margin-bottom:10px;
+  }
+
+  @media print {
+    #page-intro, #page-form { display:none !important; }
+    #page-result { display:block !important; }
+    .btn-reset, .print-btn { display:none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ INTRO ══════════════════════════════════════════════════════════ -->
+<div id="page-intro">
+  <div class="intro-card">
+    <div class="intro-brand">
+      <div class="intro-brand-icon">🧠</div>
+      <div class="intro-brand-text">Biro SDM — Setneg RI</div>
+    </div>
+    <h1 class="intro-title">Skrining Kondisi Psikologis Pegawai</h1>
+    <p class="intro-desc">
+      Terdiri dari <strong style="color:#e2e8f0">26 pertanyaan</strong> dari tiga instrumen terstandarisasi
+      (K10, PHQ-9, GAD-7). Membutuhkan sekitar <strong style="color:#e2e8f0">5–7 menit</strong>.
+    </p>
+    <div class="intro-notices">
+      <div class="intro-notice"><span>🔒</span><span>Data bersifat rahasia dan hanya diakses petugas berwenang</span></div>
+      <div class="intro-notice"><span>📊</span><span>Hasil skor ditampilkan langsung setelah pengisian selesai</span></div>
+      <div class="intro-notice"><span>❌</span><span>Tidak ada jawaban benar atau salah — isilah dengan jujur</span></div>
+    </div>
+    <div class="field-label">Nama Lengkap</div>
+    <input class="field-input" id="inp-nama" type="text" placeholder="Nama lengkap Anda" oninput="checkIntro()">
+    <div class="field-label">NIP</div>
+    <input class="field-input" id="inp-nip" type="text" placeholder="Nomor Induk Pegawai" oninput="checkIntro()">
+    <div class="field-label">Unit Kerja</div>
+    <input class="field-input" id="inp-unit" type="text" placeholder="Unit kerja Anda" oninput="checkIntro()">
+    <button class="btn-start" id="btn-start" disabled onclick="startForm()">Mulai Skrining →</button>
+  </div>
+</div>
+
+<!-- ══ FORM ════════════════════════════════════════════════════════════ -->
+<div id="page-form">
+  <div class="form-header">
+    <div class="form-header-inner">
+      <div class="form-header-top">
+        <span class="section-label-hdr" id="hdr-section-label"></span>
+        <span class="section-count" id="hdr-count"></span>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+      <div class="section-tabs" id="section-tabs"></div>
+    </div>
+  </div>
+  <div class="form-body" id="form-body"></div>
+</div>
+
+<!-- ══ RESULT ══════════════════════════════════════════════════════════ -->
+<div id="page-result">
+  <div class="result-inner">
+    <div class="result-hero">
+      <div class="result-hero-icon">📋</div>
+      <div class="result-hero-title">Hasil Skrining Anda</div>
+      <div class="result-hero-name" id="res-name"></div>
+      <div class="result-hero-date" id="res-date"></div>
+    </div>
+    <div id="score-cards"></div>
+    <div id="result-note" class="result-note"></div>
+    <div class="result-disclaimer">
+      <strong style="color:#475569">Catatan:</strong> Hasil ini merupakan skrining awal, bukan diagnosis klinis.
+      Data Anda disimpan secara rahasia dan hanya diakses oleh petugas berwenang di Biro SDM
+      Kementerian Sekretariat Negara.
+    </div>
+    <button class="print-btn" onclick="window.print()">🖨️ Cetak / Simpan PDF</button>
+    <button class="btn-reset" onclick="resetAll()">Kembali ke Halaman Awal</button>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────
+const SECTIONS = [
+  {
+    id: "k10", label: "Bagian A", color: "#1F4E79", light: "#DEEAF1",
+    title: "K10 — Distres Psikologis Umum",
+    subtitle: "Dalam 4 minggu terakhir, seberapa sering Anda mengalami hal-hal berikut?",
+    scale: ["Tidak pernah","Jarang","Kadang-kadang","Sering","Selalu"],
+    scaleStart: 1, maxScore: 50, minScore: 10,
+    questions: [
+      "Merasa lelah tanpa alasan yang jelas",
+      "Merasa gugup",
+      "Merasa sangat gugup sehingga tidak ada yang bisa menenangkan Anda",
+      "Merasa putus asa",
+      "Merasa gelisah atau tidak bisa tenang",
+      "Merasa sangat gelisah sehingga tidak bisa diam",
+      "Merasa tertekan",
+      "Merasa sangat sedih sehingga tidak ada yang bisa menghibur Anda",
+      "Merasa bahwa segalanya terasa berat bagi Anda",
+      "Merasa tidak berharga",
+    ],
+    interpret: s =>
+      s <= 19 ? { label:"Tidak Ada Gangguan", color:"#22c55e", desc:"Kondisi psikologis Anda dalam batas normal." }
+      : s <= 24 ? { label:"Gangguan Ringan", color:"#eab308", desc:"Ada indikasi tekanan psikologis ringan. Perhatikan pola istirahat dan aktivitas Anda." }
+      : s <= 29 ? { label:"Gangguan Sedang", color:"#f97316", desc:"Ada indikasi tekanan psikologis sedang. Disarankan untuk berbicara dengan Konselor SDM." }
+      : { label:"Gangguan Berat", color:"#ef4444", desc:"Ada indikasi tekanan psikologis yang signifikan. Sangat disarankan untuk segera berkonsultasi dengan Konselor SDM." }
+  },
+  {
+    id: "phq9", label: "Bagian B", color: "#C55A11", light: "#FCE4D6",
+    title: "PHQ-9 — Gejala Depresi",
+    subtitle: "Dalam 2 minggu terakhir, seberapa sering Anda mengalami hal-hal berikut?",
+    scale: ["Tidak pernah","Beberapa hari","Lebih dari separuh waktu","Hampir setiap hari"],
+    scaleStart: 0, maxScore: 27, minScore: 0,
+    questions: [
+      "Kurang tertarik atau bergairah dalam melakukan sesuatu",
+      "Merasa sedih, murung, atau putus asa",
+      "Susah tidur, mudah terbangun, atau malah tidur terlalu banyak",
+      "Merasa lelah atau kurang bertenaga",
+      "Kurang nafsu makan atau makan terlalu berlebihan",
+      "Merasa buruk tentang diri sendiri atau merasa gagal",
+      "Kesulitan berkonsentrasi pada sesuatu",
+      "Bergerak atau berbicara sangat lambat, atau sebaliknya menjadi sangat gelisah",
+      "Berpikir bahwa lebih baik mati atau ingin menyakiti diri sendiri",
+    ],
+    interpret: s =>
+      s <= 4  ? { label:"Minimal",      color:"#22c55e", desc:"Tidak ada atau minimal gejala depresi." }
+      : s <= 9  ? { label:"Ringan",       color:"#eab308", desc:"Ada gejala depresi ringan. Perhatikan pola aktivitas dan sosial Anda." }
+      : s <= 14 ? { label:"Sedang",       color:"#f97316", desc:"Ada gejala depresi sedang. Disarankan untuk berkonsultasi dengan Konselor SDM." }
+      : s <= 19 ? { label:"Sedang-Berat", color:"#ef4444", desc:"Ada gejala depresi sedang hingga berat. Segera konsultasikan dengan Konselor SDM." }
+      : { label:"Berat", color:"#dc2626", desc:"Ada gejala depresi berat. Sangat disarankan untuk segera mendapatkan pendampingan." }
+  },
+  {
+    id: "gad7", label: "Bagian C", color: "#7030A0", light: "#EAD1F5",
+    title: "GAD-7 — Gejala Kecemasan",
+    subtitle: "Dalam 2 minggu terakhir, seberapa sering Anda mengalami hal-hal berikut?",
+    scale: ["Tidak pernah","Beberapa hari","Lebih dari separuh waktu","Hampir setiap hari"],
+    scaleStart: 0, maxScore: 21, minScore: 0,
+    questions: [
+      "Merasa gugup, cemas, atau sangat tegang",
+      "Tidak mampu menghentikan atau mengendalikan kekhawatiran",
+      "Terlalu banyak khawatir tentang berbagai hal",
+      "Sulit untuk santai atau rileks",
+      "Sangat gelisah sehingga susah untuk diam",
+      "Mudah kesal atau mudah marah",
+      "Merasa takut seolah sesuatu yang buruk akan terjadi",
+    ],
+    interpret: s =>
+      s <= 4  ? { label:"Minimal", color:"#22c55e", desc:"Tidak ada atau minimal gejala kecemasan." }
+      : s <= 9  ? { label:"Ringan",  color:"#eab308", desc:"Ada gejala kecemasan ringan." }
+      : s <= 14 ? { label:"Sedang",  color:"#f97316", desc:"Ada gejala kecemasan sedang. Disarankan berkonsultasi dengan Konselor SDM." }
+      : { label:"Berat", color:"#ef4444", desc:"Ada gejala kecemasan berat. Segera konsultasikan dengan Konselor SDM." }
+  }
+];
+
+const TOTAL_Q = SECTIONS.reduce((a,s) => a + s.questions.length, 0);
+
+// ── STATE ─────────────────────────────────────────────────────────────
+let identity = { nama:"", nip:"", unit:"" };
+let answers  = {};   // key: "secId_qi" → value index (0-based)
+let activeSec = 0;
+
+// ── INTRO ─────────────────────────────────────────────────────────────
+function checkIntro() {
+  const ok = ["inp-nama","inp-nip","inp-unit"].every(id => document.getElementById(id).value.trim());
+  document.getElementById("btn-start").disabled = !ok;
+}
+function startForm() {
+  identity.nama = document.getElementById("inp-nama").value.trim();
+  identity.nip  = document.getElementById("inp-nip").value.trim();
+  identity.unit = document.getElementById("inp-unit").value.trim();
+  document.getElementById("page-intro").style.display = "none";
+  document.getElementById("page-form").style.display  = "block";
+  activeSec = 0; answers = {};
+  renderSection();
+}
+
+// ── FORM ──────────────────────────────────────────────────────────────
+function answeredCount() { return Object.keys(answers).length; }
+function secAnswered(sec) {
+  return sec.questions.every((_,qi) => answers[sec.id+"_"+qi] !== undefined);
+}
+function secAnsweredCount(sec) {
+  return sec.questions.filter((_,qi) => answers[sec.id+"_"+qi] !== undefined).length;
+}
+
+function renderSection() {
+  const sec = SECTIONS[activeSec];
+
+  // Header
+  document.getElementById("hdr-section-label").textContent = sec.label + " — " + sec.title.split("—")[0].trim();
+  document.getElementById("hdr-section-label").style.color = sec.color;
+  document.getElementById("hdr-count").textContent = secAnsweredCount(sec) + "/" + sec.questions.length + " dijawab";
+
+  // Progress
+  const pct = Math.round(answeredCount() / TOTAL_Q * 100);
+  document.getElementById("progress-fill").style.width = pct + "%";
+
+  // Section tabs
+  const tabs = document.getElementById("section-tabs");
+  tabs.innerHTML = "";
+  SECTIONS.forEach((s,i) => {
+    const tab = document.createElement("div");
+    tab.className = "section-tab";
+    tab.style.background = i === activeSec ? s.color : secAnswered(s) ? s.color+"60" : "#e2e8f0";
+    tab.onclick = () => { activeSec = i; renderSection(); };
+    tabs.appendChild(tab);
+  });
+
+  // Body
+  const body = document.getElementById("form-body");
+  body.innerHTML = "";
+
+  // Section banner
+  const banner = document.createElement("div");
+  banner.className = "section-banner";
+  banner.style.background = sec.color;
+  banner.innerHTML = `
+    <div class="section-banner-tag">${sec.label}</div>
+    <div class="section-banner-title">${sec.title.split("—")[1]?.trim() || sec.title}</div>
+    <div class="section-banner-sub">${sec.subtitle}</div>
+    <div class="scale-chips">${sec.scale.map((s2,i) =>
+      `<span class="scale-chip">${sec.scaleStart+i} = ${s2}</span>`).join("")}</div>
+  `;
+  body.appendChild(banner);
+
+  // Questions
+  sec.questions.forEach((q, qi) => {
+    const key = sec.id+"_"+qi;
+    const val = answers[key];
+    const card = document.createElement("div");
+    card.className = "question-card" + (val !== undefined ? " answered" : "");
+    card.style.setProperty("--sec-color", sec.color);
+    if(val !== undefined) card.style.borderColor = sec.color + "60";
+
+    const btnsHtml = sec.scale.map((lbl,si) => {
+      const selected = val === si;
+      return `<button class="answer-btn${selected?" selected":""}"
+        ${selected ? `style="background:${sec.color};border-color:${sec.color}"` : ""}
+        onclick="selectAnswer('${key}',${si})"
+      ><span class="answer-btn-score">${sec.scaleStart+si}</span><span class="answer-btn-label">${lbl}</span></button>`;
+    }).join("");
+
+    card.innerHTML = `
+      <div class="question-text">
+        <span class="question-num" style="color:${sec.color}">${qi+1}.</span>${q}
+      </div>
+      <div class="answer-btns">${btnsHtml}</div>
+    `;
+    body.appendChild(card);
+  });
+
+  // Nav
+  const nav = document.createElement("div");
+  nav.className = "form-nav";
+  const isLast = activeSec === SECTIONS.length-1;
+  const canNext = secAnswered(sec);
+  const allDone = answeredCount() === TOTAL_Q;
+
+  if(activeSec > 0) {
+    const back = document.createElement("button");
+    back.className = "btn-back"; back.textContent = "← Kembali";
+    back.onclick = () => { activeSec--; renderSection(); };
+    nav.appendChild(back);
+  }
+
+  const next = document.createElement("button");
+  next.className = "btn-next";
+  next.disabled = isLast ? !allDone : !canNext;
+
+  if(!isLast) {
+    next.textContent = "Lanjut ke Bagian Berikutnya →";
+    next.style.background = canNext ? sec.color : "";
+    next.onclick = () => { activeSec++; renderSection(); };
+  } else {
+    next.textContent = allDone ? "Lihat Hasil Skrining ✓" : `Selesaikan semua pertanyaan (${answeredCount()}/${TOTAL_Q})`;
+    next.style.background = allDone ? "linear-gradient(135deg,#16a34a,#15803d)" : "";
+    next.onclick = () => { if(allDone) showResult(); };
+  }
+  nav.appendChild(next);
+  body.appendChild(nav);
+
+  // Scroll to top
+  window.scrollTo({ top:0, behavior:"smooth" });
+}
+
+function selectAnswer(key, idx) {
+  answers[key] = idx;
+  renderSection();
+}
+
+// ── RESULT ────────────────────────────────────────────────────────────
+function getScore(sec) {
+  return sec.questions.reduce((sum,_,qi) => {
+    const v = answers[sec.id+"_"+qi];
+    return v !== undefined ? sum + v + sec.scaleStart : sum;
+  }, 0);
+}
+
+function showResult() {
+  document.getElementById("page-form").style.display = "none";
+  document.getElementById("page-result").style.display = "block";
+  window.scrollTo({ top:0 });
+
+  document.getElementById("res-name").textContent = identity.nama + " — " + identity.unit;
+  document.getElementById("res-date").textContent = new Date().toLocaleDateString("id-ID",{day:"numeric",month:"long",year:"numeric"});
+
+  const cards = document.getElementById("score-cards");
+  cards.innerHTML = "";
+
+  let anyBad = false;
+  SECTIONS.forEach(sec => {
+    const score = getScore(sec);
+    const result = sec.interpret(score);
+    const pct = Math.round((score - sec.minScore) / (sec.maxScore - sec.minScore) * 100);
+    if(result.label.includes("Sedang") || result.label.includes("Berat")) anyBad = true;
+
+    const card = document.createElement("div");
+    card.className = "score-card";
+    card.style.borderColor = sec.color + "30";
+    card.innerHTML = `
+      <div class="score-card-top">
+        <div>
+          <div class="score-card-tag" style="color:${sec.color}">${sec.label}</div>
+          <div class="score-card-name">${sec.title.split("—")[0].trim()}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="score-num" style="color:${sec.color}">${score}</div>
+          <div class="score-max">/ ${sec.maxScore}</div>
+        </div>
+      </div>
+      <div class="score-bar-wrap">
+        <div class="score-bar-fill" style="width:${pct}%;background:${result.color}"></div>
+      </div>
+      <div><span class="score-badge" style="background:${result.color}20;color:${result.color}">${result.label}</span></div>
+      <div class="score-desc">${result.desc}</div>
+    `;
+    cards.appendChild(card);
+  });
+
+  const note = document.getElementById("result-note");
+  if(anyBad) {
+    note.style.background = "#fef2f2"; note.style.borderColor = "#fecaca";
+    note.innerHTML = `<div class="result-note-title" style="color:#dc2626">⚠️ Tindak Lanjut Disarankan</div>
+      <div class="result-note-text">Berdasarkan hasil skrining, Anda disarankan untuk berkonsultasi dengan Konselor SDM di Biro SDM Kementerian Sekretariat Negara. Konsultasi bersifat rahasia dan sukarela.</div>`;
+  } else {
+    note.style.background = "#f0fdf4"; note.style.borderColor = "#bbf7d0";
+    note.innerHTML = `<div class="result-note-title" style="color:#16a34a">✅ Hasil Anda Secara Umum Baik</div>
+      <div class="result-note-text">Pertahankan kondisi psikologis Anda dengan menjaga keseimbangan antara pekerjaan dan kehidupan pribadi. Skrining berikutnya akan dilakukan secara berkala.</div>`;
+  }
+}
+
+function resetAll() {
+  answers = {}; identity = { nama:"", nip:"", unit:"" }; activeSec = 0;
+  document.getElementById("inp-nama").value = "";
+  document.getElementById("inp-nip").value  = "";
+  document.getElementById("inp-unit").value = "";
+  document.getElementById("btn-start").disabled = true;
+  document.getElementById("page-result").style.display = "none";
+  document.getElementById("page-intro").style.display  = "flex";
+  window.scrollTo({ top:0 });
+}
+</script>
+</body>
+</html>

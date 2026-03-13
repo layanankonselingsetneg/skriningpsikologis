@@ -189,7 +189,15 @@
     <div class="field-label">NIP</div>
     <input class="field-input" id="inp-nip" type="text" placeholder="Nomor Induk Pegawai" oninput="checkIntro()">
     <div class="field-label">Unit Kerja</div>
-    <input class="field-input" id="inp-unit" type="text" placeholder="Unit kerja Anda" oninput="checkIntro()">
+    <div style="position:relative;margin-bottom:0;">
+      <input class="field-input" id="inp-unit-search" type="text"
+        placeholder="Ketik untuk mencari unit kerja..."
+        oninput="filterUnit()" onfocus="showUnitDrop()" autocomplete="off"
+        style="margin-bottom:0;padding-right:36px;">
+      <span style="position:absolute;right:14px;top:50%;transform:translateY(-50%);color:#94a3b8;pointer-events:none;font-size:12px;">▾</span>
+      <div id="unit-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#1a2744;border:1px solid rgba(255,255,255,0.18);border-radius:10px;max-height:210px;overflow-y:auto;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,0.4);"></div>
+    </div>
+    <input type="hidden" id="inp-unit">
     <button class="btn-start" id="btn-start" disabled onclick="startForm()">Mulai Skrining →</button>
   </div>
 </div>
@@ -563,12 +571,143 @@ function showResult() {
 
 function resetAll() {
   answers = {}; identity = { nama:"", nip:"", unit:"" }; activeSec = 0;
-  ["inp-nama","inp-nip","inp-unit"].forEach(id => document.getElementById(id).value = "");
+  ["inp-nama","inp-nip"].forEach(id => document.getElementById(id).value = "");
+  document.getElementById("inp-unit-search").value = "";
+  document.getElementById("inp-unit").value = "";
   document.getElementById("btn-start").disabled      = true;
   document.getElementById("page-result").style.display = "none";
   document.getElementById("page-intro").style.display  = "flex";
   window.scrollTo({ top:0 });
 }
+
+// ── UNIT KERJA DATA ───────────────────────────────────────────────────
+const UNITS = [
+  "Biro Perencanaan, Sekretariat Kementerian",
+  "Biro Keuangan, Sekretariat Kementerian",
+  "Biro Tata Usaha dan Dukungan Pimpinan, Sekretariat Kementerian",
+  "Biro Kerja Sama Teknik Luar Negeri, Sekretariat Kementerian",
+  "Biro Hubungan Masyarakat, Sekretariat Kementerian",
+  "Biro Pengelolaan Barang Milik Negara dan Pengadaan Barang dan Jasa, Sekretariat Kementerian",
+  "Biro Umum, Sekretariat Kementerian",
+  "Biro Administrasi, Deputi Bidang Administrasi dan Pengelolaan Istana, Sekretariat Presiden",
+  "Biro Pengelolaan Istana, Deputi Bidang Administrasi dan Pengelolaan Istana, Sekretariat Presiden",
+  "Biro Umum, Deputi Bidang Administrasi dan Pengelolaan Istana, Sekretariat Presiden",
+  "Biro Protokol, Deputi Bidang Protokol, Pers, dan Media, Sekretariat Presiden",
+  "Biro Pers, Media, dan Informasi, Deputi Bidang Protokol, Pers, dan Media, Sekretariat Presiden",
+  "Istana Kepresidenan Bogor, Sekretariat Presiden",
+  "Istana Kepresidenan Cipanas, Sekretariat Presiden",
+  "Istana Kepresidenan Yogyakarta, Sekretariat Presiden",
+  "Istana Kepresidenan Tampaksiring, Sekretariat Presiden",
+  "Asisten Deputi Ekonomi, Keuangan, dan Transformasi Digital, Sekretariat Wakil Presiden",
+  "Asisten Deputi Industri, Perdagangan, Pariwisata, dan Ekonomi Kreatif, Sekretariat Wakil Presiden",
+  "Asisten Deputi Infrastruktur, Sumber Daya Alam, dan Pembangunan Kewilayahan, Sekretariat Wakil Presiden",
+  "Asisten Deputi Pengentasan Kemiskinan dan Pembangunan Desa, Sekretariat Wakil Presiden",
+  "Asisten Deputi Kesehatan, Gizi, dan Pembangunan Keluarga, Sekretariat Wakil Presiden",
+  "Asisten Deputi Pemberdayaan Masyarakat dan Penanggulangan Bencana, Sekretariat Wakil Presiden",
+  "Asisten Deputi Pendidikan, Agama, Kebudayaan, Pemuda, dan Olahraga, Sekretariat Wakil Presiden",
+  "Asisten Deputi Hubungan Luar Negeri dan Pertahanan, Sekretariat Wakil Presiden",
+  "Asisten Deputi Politik, Keamanan, Hukum, dan Hak Asasi Manusia, Sekretariat Wakil Presiden",
+  "Asisten Deputi Tata Kelola Pemerintahan dan Percepatan Pembangunan Daerah, Sekretariat Wakil Presiden",
+  "Biro Tata Usaha dan Sumber Daya Manusia, Deputi Bidang Administrasi, Sekretariat Wakil Presiden",
+  "Biro Perencanaan dan Keuangan, Deputi Bidang Administrasi, Sekretariat Wakil Presiden",
+  "Biro Umum, Deputi Bidang Administrasi, Sekretariat Wakil Presiden",
+  "Biro Protokol dan Kerumahtanggaan, Deputi Bidang Administrasi, Sekretariat Wakil Presiden",
+  "Biro Pers, Media, dan Informasi, Deputi Bidang Administrasi, Sekretariat Wakil Presiden",
+  "Biro Personel TNI dan Kepolisian, Sekretariat Militer Presiden",
+  "Biro Pengamanan, Sekretariat Militer Presiden",
+  "Biro Gelar, Tanda Jasa, dan Tanda Kehormatan, Sekretariat Militer Presiden",
+  "Biro Umum, Sekretariat Militer Presiden",
+  "Asisten Deputi Politik, Pemerintahan Dalam Negeri dan Aparatur Negara, Sekretariat Dukungan Kabinet",
+  "Asisten Deputi Hukum, HAM, Imigrasi, dan Pemasyarakatan, Sekretariat Dukungan Kabinet",
+  "Asisten Deputi Hubungan Luar Negeri, Komunikasi, dan Digital, Sekretariat Dukungan Kabinet",
+  "Asisten Deputi Pertahanan dan Keamanan, Sekretariat Dukungan Kabinet",
+  "Asisten Deputi Energi, Sumber Daya Mineral, dan Pariwisata, Sekretariat Dukungan Kabinet",
+  "Asisten Deputi Ketenagakerjaan, Investasi, dan Hilirisasi, Sekretariat Dukungan Kabinet",
+  "Asisten Deputi Perdagangan dan Perindustrian, Sekretariat Dukungan Kabinet",
+  "Asisten Deputi Perencanaan Pembangunan, Fiskal, dan Pengembangan BUMN, Sekretariat Dukungan Kabinet",
+  "Asisten Deputi Kesehatan, Kependudukan, Pemuda, dan Olahraga, Sekretariat Dukungan Kabinet",
+  "Asisten Deputi Agama, Kebudayaan, Pendidikan, Sains, dan Teknologi, Sekretariat Dukungan Kabinet",
+  "Asisten Deputi Sosial, Pekerja Migran, Pemberdayaan Perempuan, dan Perlindungan Anak, Sekretariat Dukungan Kabinet",
+  "Asisten Deputi Desa, Pembangunan Daerah Tertinggal, Koperasi, dan UMKM, Sekretariat Dukungan Kabinet",
+  "Asisten Deputi Kelautan, Perikanan, dan Kehutanan, Sekretariat Dukungan Kabinet",
+  "Asisten Deputi Agraria, Tata Ruang, Transmigrasi, dan Lingkungan Hidup, Sekretariat Dukungan Kabinet",
+  "Asisten Deputi Pekerjaan Umum, Perumahan, dan Perhubungan, Sekretariat Dukungan Kabinet",
+  "Asisten Deputi Pertanian, Pangan, dan Gizi, Sekretariat Dukungan Kabinet",
+  "Asisten Deputi Penyelenggaraan Persidangan, Sekretariat Dukungan Kabinet",
+  "Asisten Deputi Pelaporan Persidangan, Sekretariat Dukungan Kabinet",
+  "Asisten Deputi Naskah dan Penerjemahan, Sekretariat Dukungan Kabinet",
+  "Asisten Deputi Dokumentasi, Diseminasi, dan Arsip, Sekretariat Dukungan Kabinet",
+  "Biro Pengelolaan Anggaran, SDM, dan Kinerja, Sekretariat Dukungan Kabinet",
+  "Biro Dukungan Aparatur dan Kelembagaan, Sekretariat Dukungan Kabinet",
+  "Biro Umum, Sekretariat Dukungan Kabinet",
+  "Asisten Deputi Keamanan, Kelembagaan, dan Aparatur, Deputi Bidang Perundang-undangan dan Administrasi Hukum",
+  "Asisten Deputi Politik, Hukum, dan Pemerintahan Dalam Negeri, Deputi Bidang Perundang-undangan dan Administrasi Hukum",
+  "Asisten Deputi Perekonomian, Deputi Bidang Perundang-undangan dan Administrasi Hukum",
+  "Asisten Deputi Kesejahteraan Rakyat, Deputi Bidang Perundang-undangan dan Administrasi Hukum",
+  "Asisten Deputi Administrasi Hukum, Deputi Bidang Perundang-undangan dan Administrasi Hukum",
+  "Asisten Deputi Hubungan Lembaga Negara dan Lembaga Pemerintah, Deputi Bidang Hubungan Kelembagaan",
+  "Asisten Deputi Hubungan Lembaga Non Pemerintah, Deputi Bidang Hubungan Kelembagaan",
+  "Asisten Deputi Pengaduan Masyarakat, Deputi Bidang Hubungan Kelembagaan",
+  "Asisten Deputi Kajian Strategis dan Pengelolaan Kemitraan, Deputi Bidang Hubungan Kelembagaan",
+  "Biro Administrasi Pejabat Negara, Deputi Bidang Administrasi Aparatur",
+  "Biro Administrasi Pejabat Pemerintahan, Deputi Bidang Administrasi Aparatur",
+  "Biro Sumber Daya Manusia, Deputi Bidang Administrasi Aparatur",
+  "Biro Organisasi, Tata Laksana, Hukum, dan Reformasi Birokrasi, Deputi Bidang Administrasi Aparatur",
+  "Pusat Pengembangan dan Layanan Sistem Informasi, Badan Teknologi, Data, dan Informasi",
+  "Pusat Infrastruktur Sistem Jaringan dan Keamanan Siber, Badan Teknologi, Data, dan Informasi",
+  "Pusat Manajemen Data dan Transformasi Digital, Badan Teknologi, Data, dan Informasi",
+  "Inspektorat, Kementerian Sekretariat Negara",
+  "Pusat Pembinaan Penerjemah",
+  "Pusat Pembinaan Analis Kerja Sama",
+  "Biro Data dan Informasi, Sekretariat Dewan Pertimbangan Presiden",
+  "Biro Umum, Sekretariat Dewan Pertimbangan Presiden",
+  "Sekretariat Kantor Staf Presiden",
+  "Sekretariat Kantor Komunikasi Kepresidenan",
+  "Sekretariat Dewan Ekonomi Nasional",
+  "Sekretariat Badan Pengendalian Pembangunan dan Investigasi Khusus",
+  "Pusat Pengelolaan Komplek Gelora Bung Karno",
+  "PPK Kemayoran",
+  "Pusat Pengembangan Kompetensi Aparatur Sipil Negara",
+];
+
+function showUnitDrop() {
+  renderUnitDrop(UNITS);
+}
+
+function filterUnit() {
+  const q = document.getElementById("inp-unit-search").value.toLowerCase();
+  document.getElementById("inp-unit").value = ""; // reset hidden
+  checkIntro();
+  const filtered = q.length === 0 ? UNITS : UNITS.filter(u => u.toLowerCase().includes(q));
+  renderUnitDrop(filtered);
+}
+
+function renderUnitDrop(list) {
+  const drop = document.getElementById("unit-dropdown");
+  drop.style.display = list.length ? "block" : "none";
+  drop.innerHTML = list.map(u =>
+    `<div onclick="selectUnit(${JSON.stringify(u)})"
+      style="padding:10px 14px;font-size:13px;color:#e2e8f0;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.06);line-height:1.4;"
+      onmouseover="this.style.background='rgba(255,255,255,0.1)'"
+      onmouseout="this.style.background=''"
+    >${u}</div>`
+  ).join("");
+}
+
+function selectUnit(unit) {
+  document.getElementById("inp-unit-search").value = unit;
+  document.getElementById("inp-unit").value = unit;
+  document.getElementById("unit-dropdown").style.display = "none";
+  checkIntro();
+}
+
+// Close dropdown when clicking outside
+document.addEventListener("click", e => {
+  if(!e.target.closest("#unit-dropdown") && e.target.id !== "inp-unit-search") {
+    document.getElementById("unit-dropdown").style.display = "none";
+  }
+});
+
 </script>
 </body>
 </html>
